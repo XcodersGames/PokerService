@@ -135,7 +135,7 @@ public class GameController {
          table.getPlayers()[table.getBigBindId() + 1].setStatus(Player.ACTIVE);
          }
          } else {
-         table.getPlayers()[0].setStatus(Player.ACTIVE);
+         table.selectFirst
          }*/
         System.out.println("big bind set : " + amount);
         dealPlayerCards(table);
@@ -146,6 +146,20 @@ public class GameController {
 
     public void discardCard(HttpSession session, Integer tableId, Long playerId, Card card) throws PokerException {
         Table table = getTable(session, tableId);
+        for (Player player : table.getPlayers()) {
+            if (player == null) {
+                continue;
+            }
+            System.out.print("@before>player " + player.getId() + " ");
+            for (Card card1 : player.getCards()) {
+                if (card1 == null) {
+                    continue;
+                }
+                System.out.print(card1 +" ");
+            }
+            System.out.println();
+        }
+        //============
         for (Player p : table.getPlayers()) {
             if (p == null) {
                 continue;
@@ -156,11 +170,35 @@ public class GameController {
                     if (c.equals(card)) {
                         p.getCards()[i] = null;
                         reArrangeCards(p.getCards());
+                        p.setHasDiscardedThirdCard(true);
                         break;
                     }
                 }
                 break;
             }
+        }
+        System.out.println("player " + playerId + " discarded " + card);
+        if(table.allPlayersDiscardedCard()){
+            System.out.println("all players have discarded calling turn");
+            turn(table);
+        }else{
+            System.out.println("all have not discarded");
+            table.selectNextActivePlayer();
+        }
+        
+        //===================
+        for (Player player : table.getPlayers()) {
+            if (player == null) {
+                continue;
+            }
+            System.out.print("@after>player " + player.getId() + " ");
+            for (Card card1 : player.getCards()) {
+                if (card1 == null) {
+                    continue;
+                }
+                System.out.print(card1 +" ");
+            }
+            System.out.println();
         }
     }
 
@@ -176,38 +214,43 @@ public class GameController {
         if (!currentPlayer.getId().equals(playerId)) {
             throw new PokerException("Not player turn to bet");
         }
-
-        if (table.getMaxBet() < amount) {
+        
+        currentPlayer.setBet(currentPlayer.getBet() + amount);
+        currentPlayer.setMoney(currentPlayer.getMoney() - amount);
+        
+        if (table.getMaxBet() < currentPlayer.getBet()) {
             System.out.println("its a raise");
             table.setMaxBet(amount);
-        }
+        }else
 
-        if (table.getMaxBet() == amount) {
+        if (table.getMaxBet().equals(currentPlayer.getBet())) {
             System.out.println("its a check");
-        }
-
-        if (table.getMaxBet() > amount) {
+        }else if (currentPlayer.getMoney() <= 0) {
             System.out.println("its an allin");
             currentPlayer.setStatus(Player.ALL_IN);
         }
 
-        currentPlayer.setBet(currentPlayer.getBet() + amount);
-        currentPlayer.setMoney(currentPlayer.getMoney() - amount);
+        
 
         if (potEqual(table)) {
             System.out.println("pot equal");
             switch (table.getStatus()) {
                 case Table.PRE_FLOP:
-                    flop(table);                    
+                    flop(table);  
+                    System.out.println("preflop bet is equal post flop");
                     break;
                 case Table.POST_FLOP:
-
+                    table.setStatus(Table.WAIT_CARD_DISCARD);
+                    table.selectFristPlayerActive();
+                    System.out.println("post flop bet is equal now turn");
                     break;
                 case Table.POST_TURN:
-
+                    System.out.println("end of river");
+                    river(table);
                     break;
                 case Table.SHOWDOWN:
-
+                    System.out.println("end of show down");
+                    dividePot(table);
                     break;                
             }
         } else {
@@ -218,6 +261,16 @@ public class GameController {
 
     //to be written by viji
     public void fold(HttpSession session, Integer tableId, Long playerId) throws PokerException {
+        Table table = getTable(session, tableId);
+        for(Player p : table.getPlayers()){
+            if(p==null){
+                continue;
+            }
+            if(p.getId().equals(playerId)){
+                p.setStatus(Player.FOLDED);       
+                
+            }
+        }
     }
 
     public void check(HttpSession session, Integer tableId, Long playerId, Integer amount) throws PokerException {
@@ -249,6 +302,7 @@ public class GameController {
 
     //to be written by viji
     private void dealPlayerCards(Table table) {
+        System.out.println("deal player cards");
         table.getCardPack().shuffle();
 
         for (Player p : table.getPlayers()) {
@@ -267,30 +321,58 @@ public class GameController {
             tableCards[i] = flopCards[i];
         }
         table.setStatus(Table.POST_FLOP);
-        table.getPlayers()[0].setStatus(Player.ACTIVE);
+        table.selectFristPlayerActive();
     }
 
     //to be written by viji
     private void turn(Table table) {
+        Card[] tableCards = table.getPlayCards();
+        Card[] turnCard = table.getCardPack().getCards(1);
+        tableCards[3] = turnCard[0];
+        table.setStatus(Table.POST_TURN);
+        table.selectFristPlayerActive();
+        System.out.println("river turn on table");
     }
 
     //to be written by viji
     private void river(Table table) {
+        Card[] tableCards = table.getPlayCards();
+        Card[] riverCard = table.getCardPack().getCards(1);
+        tableCards[4] = riverCard[0];
+        table.setStatus(Table.SHOWDOWN);
+        table.selectFristPlayerActive();
+        System.out.println("river card on table");
     }
 
     //to be written by ishantha
     private void dividePot(Table table) {
+        System.out.println("divide pot called!");
     }
 
     //to be written by viji
     private void reArrangeCards(Card[] cards) {
+        for(int i=0, j=0; i<cards.length; i++){
+            
+            if(i==cards.length-1){
+                cards[i]=null;
+            }else if((cards[i]!=null) && (i==cards.length-1)){
+                
+                cards[j]=cards[i];              
+                cards[i]=null;
+                j++;
+            }
+            
+        }
+        
+        
     }
 
     private Boolean potEqual(Table table) {
         boolean allEqual = true;
         int max = 0;
         for (Player player : table.getPlayers()) {
-            if (player != null) {
+            if (player == null) {
+                continue;
             }
             
             System.out.println("player : " + player.getName() + " : status : " + player.getStatus() + " : " + player.getBet() + " max: " + max);
