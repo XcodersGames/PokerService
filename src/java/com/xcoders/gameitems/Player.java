@@ -10,6 +10,7 @@ public class Player implements Serializable{
     public static final int INACTIVE = 1;
     public static final int ACTIVE = 2;
     public static final int FOLDED = 3;
+    public static final int ALL_IN = 4;
     
     private Long id;
     private String name;
@@ -17,6 +18,7 @@ public class Player implements Serializable{
     private Integer money;
     private Integer bet;
     private Integer status;
+    private Boolean hasDiscardedThirdCard = false;
     
     public Long getId() {
         return id;
@@ -64,6 +66,19 @@ public class Player implements Serializable{
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public Boolean isHasDiscardedThirdCard() {
+        return hasDiscardedThirdCard;
+    }
+
+    public void setHasDiscardedThirdCard(Boolean hasDiscardedThirdCard) {
+        this.hasDiscardedThirdCard = hasDiscardedThirdCard;
+    }
+
+    @Override
+    public String toString() {
+        return "Player{" + "id=" + id + ", name=" + name + ", status=" + status + '}';
     }
     
     

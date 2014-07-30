@@ -13,10 +13,11 @@ public class Table implements Serializable {
     public static final int PRE_FLOP = 4;
     public static final int FLOP = 0;
     public static final int POST_FLOP = 5;
+    public static final int WAIT_CARD_DISCARD = 6;
     public static final int TURN= 0;
-    public static final int POST_TURN = 6;
+    public static final int POST_TURN = 7;
     public static final int RIVER = 0;
-    public static final int SHOWDOWN = 0;
+    public static final int SHOWDOWN = 8;
     
     private Integer dealerId;
     private Integer smallBindId;
@@ -29,12 +30,14 @@ public class Table implements Serializable {
     private Integer pot;
     private Integer status;
     private Integer round;
+    private Integer maxBet;
     
     public Table(){
         cardPack = new CardPack();
         players = new Player[6];
         playCards = new Card[5];
         pot = 0;
+        maxBet = 0;
     }
 
     public Integer getId() {
@@ -138,6 +141,87 @@ public class Table implements Serializable {
 
     public void setRound(Integer round) {
         this.round = round;
+    }
+
+    public Integer getMaxBet() {
+        return maxBet;
+    }
+
+    public void setMaxBet(Integer maxBet) {
+        this.maxBet = maxBet;
+    }
+    
+    public void selectFristPlayerActive(){
+        for (Player player : players) {
+            if (player == null || !player.getStatus().equals(Player.ACTIVE)) {
+                continue;
+            }
+            player.setStatus(Player.INACTIVE);
+        }
+        players[0].setStatus(Player.ACTIVE);
+    }
+    
+    public Integer selectNextActivePlayer() {
+        int activePlayerIndex = 0;
+        
+        //find the currently active player and make inactive
+        for (int i = 0; i < players.length ; i++) {
+            Player p = players[i];
+            if (p == null) {
+                continue;
+            }
+            if(p.getStatus().equals(Player.ACTIVE)){
+                activePlayerIndex = i;
+                p.setStatus(Player.INACTIVE);
+                break;
+            }
+        }
+        //System.out.println("1.active player index -> " + activePlayerIndex);
+        //find next active player candidate index
+        activePlayerIndex = activePlayerIndex == players.length - 1 ? 0 : activePlayerIndex + 1 ;
+       // System.out.println("2.active player index -> " + activePlayerIndex);
+        // make sure the next active player candidate is 
+        //not null
+        //is inactive (not folded,not all in)
+        while(players[activePlayerIndex] == null || !players[activePlayerIndex].getStatus().equals(Player.INACTIVE) ){
+           System.out.println("3.active player index -> " + activePlayerIndex + " " +players[activePlayerIndex] );
+           activePlayerIndex = activePlayerIndex == players.length - 1 ? 0 : activePlayerIndex + 1 ;
+        }
+        players[activePlayerIndex].setStatus(Player.ACTIVE);
+        
+        for (Player player : players) {
+            if (player == null) {
+                continue;
+            }
+            System.out.println("p : " + player.getId() + " " + player.getName() + " " + player.getStatus() + " " + player.getBet() + " " + player.getMoney());
+        }
+        
+        return activePlayerIndex;
+    }
+    
+    public Player getActivePlayer(){
+        return players[getActivePlayerIndex()];
+    }
+    
+    public Integer getActivePlayerIndex(){
+        for (int i = 0; i < players.length; i++) {
+            if (players[i] != null && players[i].getStatus().equals(Player.ACTIVE)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public Boolean allPlayersDiscardedCard() {
+        for (Player player : players) {
+            if (player == null) {
+                continue;
+            }
+            if (!player.isHasDiscardedThirdCard()) {
+                return false;
+            }
+        }
+        return true;
     }
     
     

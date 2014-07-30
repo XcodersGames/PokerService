@@ -61,33 +61,34 @@ public class PokerWS {
     }
     
     @WebMethod(operationName = "placeSmallBind")
-    public void placeSmallBind(@WebParam(name = "tableId") Integer tableId,@WebParam(name = "amount") Integer amount) throws PokerException{
-        
+    public void placeSmallBind(@WebParam(name = "tableId") Integer tableId,@WebParam(name = "userId")Long userId,@WebParam(name = "amount") Integer amount) throws PokerException{
+        new GameController().placeSmallBind(getSession(), tableId, userId, amount);
     }
     
     @WebMethod(operationName = "placeBigBind")
-    public void placeBigBind(@WebParam(name = "tableId") Integer tableId,@WebParam(name = "amount") Integer amount) throws PokerException{
-        
+    public void placeBigBind(@WebParam(name = "tableId") Integer tableId,@WebParam(name = "userId")Long userId,@WebParam(name = "amount") Integer amount) throws PokerException{
+        new GameController().placeBigBind(getSession(), tableId, userId, amount);
     }
     
     @WebMethod(operationName = "discardCard")
     public void discardCard(@WebParam(name = "tableId") Integer tableId, @WebParam(name = "playerId") Long playerId,@WebParam(name = "card") Card card) throws PokerException{
-    
+        new GameController().discardCard(getSession(), tableId, playerId, card);
     }
     
     @WebMethod(operationName = "bet")
     public void bet(@WebParam(name = "tableId") Integer tableId,@WebParam(name = "playerId") Long playerId,@WebParam(name = "amount") Integer amount) throws PokerException{
-    
+        new GameController().bet(session, tableId, playerId, amount);
     }
     
     @WebMethod(operationName = "fold")
-    public void fold(@WebParam(name = "tableId") Integer tableId,@WebParam(name = "playerId") Long playerId,@WebParam(name = "amount") Integer amount) throws PokerException{
-    
+    public void fold(@WebParam(name = "tableId") Integer tableId,@WebParam(name = "playerId") Long playerId) throws PokerException{
+        new GameController().fold(getSession(),tableId, playerId);
     }
     
+    /*
     @WebMethod(operationName = "check")
     public void check(@WebParam(name = "tableId") Integer tableId,@WebParam(name = "playerId") Long playerId,@WebParam(name = "amount") Integer amount) throws PokerException{
-    
-    }
+        new GameController().check(getSession(),tableId, playerId, amount);
+    }*/
     
 }
