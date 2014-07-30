@@ -18,6 +18,7 @@ public class Table implements Serializable {
     public static final int POST_TURN = 7;
     public static final int RIVER = 0;
     public static final int SHOWDOWN = 8;
+    public static final int WAITING_FOR_NEXT_ROUND = 9;
     
     private Integer dealerId;
     private Integer smallBindId;
@@ -32,12 +33,17 @@ public class Table implements Serializable {
     private Integer round;
     private Integer maxBet;
     
+    private Long timeStamp;
+    
+    private Result result;
+    
     public Table(){
         cardPack = new CardPack();
         players = new Player[6];
         playCards = new Card[5];
         pot = 0;
         maxBet = 0;
+        updateTimeStamp();
     }
 
     public Integer getId() {
@@ -45,6 +51,7 @@ public class Table implements Serializable {
     }
 
     public void setId(Integer id) {
+        updateTimeStamp();
         this.id = id;
     }
 
@@ -54,6 +61,7 @@ public class Table implements Serializable {
 
     public void setPlayers(Player[] players) {
         this.players = players;
+        updateTimeStamp();
     }
 
     public CardPack getCardPack() {
@@ -62,6 +70,7 @@ public class Table implements Serializable {
 
     public void setCardPack(CardPack cardPack) {
         this.cardPack = cardPack;
+        updateTimeStamp();
     }
 
     public Card[] getPlayCards() {
@@ -70,6 +79,7 @@ public class Table implements Serializable {
 
     public void setPlayCards(Card[] playCards) {
         this.playCards = playCards;
+        updateTimeStamp();
     }
 
     public Integer getPot() {
@@ -78,6 +88,15 @@ public class Table implements Serializable {
 
     public void setPot(Integer pot) {
         this.pot = pot;
+        updateTimeStamp();
+    }
+
+    public Result getResult() {
+        return result;
+    }
+
+    public void setResult(Result result) {
+        this.result = result;
     }
     
     public Boolean hasSeats(){
@@ -101,6 +120,7 @@ public class Table implements Serializable {
                 break;
             }
         }        
+        updateTimeStamp();
     }
 
     public Integer getDealerId() {
@@ -109,6 +129,7 @@ public class Table implements Serializable {
 
     public void setDealerId(Integer dealerId) {
         this.dealerId = dealerId;
+        updateTimeStamp();
     }
 
     public Integer getSmallBindId() {
@@ -117,6 +138,7 @@ public class Table implements Serializable {
 
     public void setSmallBindId(Integer smallBindId) {
         this.smallBindId = smallBindId;
+        updateTimeStamp();
     }
 
     public Integer getBigBindId() {
@@ -125,6 +147,7 @@ public class Table implements Serializable {
 
     public void setBigBindId(Integer bigBindId) {
         this.bigBindId = bigBindId;
+        updateTimeStamp();
     }
 
     public Integer getStatus() {
@@ -133,6 +156,7 @@ public class Table implements Serializable {
 
     public void setStatus(Integer status) {
         this.status = status;
+        updateTimeStamp();
     }
 
     public Integer getRound() {
@@ -141,6 +165,7 @@ public class Table implements Serializable {
 
     public void setRound(Integer round) {
         this.round = round;
+        updateTimeStamp();
     }
 
     public Integer getMaxBet() {
@@ -149,6 +174,16 @@ public class Table implements Serializable {
 
     public void setMaxBet(Integer maxBet) {
         this.maxBet = maxBet;
+        updateTimeStamp();
+    }
+
+    public Long getTimeStamp() {
+        return timeStamp;
+    }
+
+    public void setTimeStamp(Long timeStamp) {
+        this.timeStamp = timeStamp;
+        updateTimeStamp();
     }
     
     public void selectFristPlayerActive(){
@@ -159,6 +194,7 @@ public class Table implements Serializable {
             player.setStatus(Player.INACTIVE);
         }
         players[0].setStatus(Player.ACTIVE);
+        updateTimeStamp();
     }
     
     public Integer selectNextActivePlayer() {
@@ -195,7 +231,7 @@ public class Table implements Serializable {
             }
             System.out.println("p : " + player.getId() + " " + player.getName() + " " + player.getStatus() + " " + player.getBet() + " " + player.getMoney());
         }
-        
+        updateTimeStamp();
         return activePlayerIndex;
     }
     
@@ -224,5 +260,8 @@ public class Table implements Serializable {
         return true;
     }
     
+    public void updateTimeStamp(){
+        timeStamp = System.currentTimeMillis();
+    }
     
 }

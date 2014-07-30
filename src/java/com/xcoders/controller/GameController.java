@@ -3,13 +3,13 @@ package com.xcoders.controller;
 import com.xcoders.entity.Member;
 import com.xcoders.gameitems.Card;
 import com.xcoders.gameitems.Player;
+import com.xcoders.gameitems.Result;
 import com.xcoders.gameitems.Table;
 import com.xcoders.jpacontroller.MemberJpaController;
 import com.xcoders.ws.PokerException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpSession;
-import javax.swing.text.TabExpander;
 
 public class GameController {
     //WS Methods
@@ -115,6 +115,7 @@ public class GameController {
         System.out.println("");
         table.getPlayers()[table.getBigBindId()].setStatus(Player.ACTIVE);
         System.out.println("small bind set : " + amount);
+        table.updateTimeStamp();
     }
 
     public void placeBigBind(HttpSession session, Integer tableId, Long userId, Integer amount) throws PokerException {
@@ -141,7 +142,7 @@ public class GameController {
         dealPlayerCards(table);
         table.setStatus(Table.PRE_FLOP);
         System.out.println("player cards dealt");
-        table.selectNextActivePlayer();
+        table.selectNextActivePlayer();        
     }
 
     public void discardCard(HttpSession session, Integer tableId, Long playerId, Card card) throws PokerException {
@@ -257,6 +258,7 @@ public class GameController {
             System.out.println("pot not equal");
             table.selectNextActivePlayer();
         }
+        table.updateTimeStamp();
     }
 
     //to be written by viji
@@ -271,6 +273,7 @@ public class GameController {
                 
             }
         }
+        table.updateTimeStamp();
     }
 
     public void check(HttpSession session, Integer tableId, Long playerId, Integer amount) throws PokerException {
@@ -298,6 +301,7 @@ public class GameController {
             player.setStatus(Player.INACTIVE);
         }
         table.getPlayers()[table.getSmallBindId()].setStatus(Player.ACTIVE);
+        table.updateTimeStamp();
     }
 
     //to be written by viji
@@ -311,6 +315,7 @@ public class GameController {
             }
             p.setCards(table.getCardPack().getCards(3));
         }
+        table.updateTimeStamp();
     }
 
     //to be written by viji
@@ -322,6 +327,7 @@ public class GameController {
         }
         table.setStatus(Table.POST_FLOP);
         table.selectFristPlayerActive();
+        table.updateTimeStamp();
     }
 
     //to be written by viji
@@ -332,6 +338,7 @@ public class GameController {
         table.setStatus(Table.POST_TURN);
         table.selectFristPlayerActive();
         System.out.println("river turn on table");
+        table.updateTimeStamp();
     }
 
     //to be written by viji
@@ -342,28 +349,39 @@ public class GameController {
         table.setStatus(Table.SHOWDOWN);
         table.selectFristPlayerActive();
         System.out.println("river card on table");
+        table.updateTimeStamp();
     }
 
     //to be written by ishantha
     private void dividePot(Table table) {
         System.out.println("divide pot called!");
+        /*
+         * your class should come here
+         */
+        Result result = new Result();
+        //these values has to be taken from your class
+        result.setWinner(table.getPlayers()[0]);
+        result.setLooser(table.getPlayers()[1]);
+        result.setWinnerAmount(1000);
+        result.setLooserAmount(1000);
+        result.setWinnerCards(table.getCardPack().getCards(5));
+        result.setLooserCards(table.getCardPack().getCards(5));
+        
+        table.setResult(result);
+        table.setStatus(Table.WAITING_FOR_NEXT_ROUND);
+        table.updateTimeStamp();
     }
 
     //to be written by viji
     private void reArrangeCards(Card[] cards) {
-        for(int i=0, j=0; i<cards.length; i++){
-            
-            if(i==cards.length-1){
-                cards[i]=null;
-            }else if((cards[i]!=null) && (i==cards.length-1)){
-                
-                cards[j]=cards[i];              
-                cards[i]=null;
+        for(int i=0, j=0; i<cards.length; i++){           
+            if(cards[i]!=null){
+                cards[j]=cards[i];
                 j++;
             }
             
         }
-        
+        cards[cards.length-1]=null;
         
     }
 
